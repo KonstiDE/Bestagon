@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/bestagon" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
