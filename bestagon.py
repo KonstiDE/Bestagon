@@ -85,18 +85,17 @@ class bestagon:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('bestagon', message)
 
-
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -173,7 +172,6 @@ class bestagon:
         # will be set False in run()
         self.first_start = True
 
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -182,9 +180,14 @@ class bestagon:
                 action)
             self.iface.removeToolBarIcon(action)
 
-
     def run(self):
         """Run method that performs all the real work"""
+
+        forms = {
+            "Rectangle": 2,
+            "Diamond": 3,
+            "Hexagon": 4
+        }
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
@@ -192,16 +195,75 @@ class bestagon:
             self.first_start = False
             self.dlg = bestagonDialog()
 
+            # init filters
+            self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer)
+
+            # init values
+            self.dlg.comboBox_form.addItems(forms.keys())
+
+        self.dlg.button_box.accepted.disconnect()
+        self.dlg.button_box.accepted.connect(self.run)
+
         # show the dialog
         self.dlg.show()
 
-        # init filters
-        self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer)
+        # init default views
+        point_layer_select = self.dlg.mMapLayerComboBox_points
+        log = self.dlg.log_entry
+        tab = self.dlg.tabWidget
+
+        edit_width = self.dlg.lineEdit_width
+        edit_height = self.dlg.lineEdit_height
 
         # Run the dialog event loop
         result = self.dlg.exec_()
+
         # See if OK was pressed
         if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+            log.clear()
+
+            tab.setCurrentIndex(1)
+
+            log.insertHtml("Started formizing...<br>")
+            log.insertHtml("Loading Suuiii!<br><br>")
+
+            form = self.dlg.comboBox_form.currentText()
+            points = point_layer_select.currentLayer()
+            points.extent()
+
+            log.append(str(points.extent()))
+
+            #processing.run("native:polygonfromlayerextent",{
+            #    'INPUT': 'B:/projects/RProjects/animal_movement/qgis/cafes.gpkg | layername=cafes',
+            #    'ROUND_TO': 0,
+            #    'OUTPUT': 'TEMPORARY_OUTPUT'
+            #})
+
+            if form in forms:
+
+                log.append("Selected form: " + form)
+
+                #Fetch form size
+                try:
+                    width = float(edit_width.text())
+                    height = float(edit_height.text())
+
+                    log.append("Found width to be: " + str(width) + "km")
+                    log.append("Found height to be: " + str(height) + "km")
+
+                    #processing.run("native:creategrid", {
+                    #    'TYPE': forms[form],
+                    #    'EXTENT': '8.596003700,9.835141800,41.386694700,43.050699100 [EPSG:4326]',
+                    #    'HSPACING': 10000, 'VSPACING': 10000, 'HOVERLAY': 0,
+                    #    'VOVERLAY': 0,
+                    #    'CRS': QgsCoordinateReferenceSystem('EPSG:3857'),
+                    #    'OUTPUT': 'TEMPORARY_OUTPUT'
+                    #})
+
+                except ZeroDivisionError:
+                    log.insertHtml("<p style=\"color:#FF0000\";>Error fetching form size...</p><br>")
+                    log.insertHtml("<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")
+
+            else:
+                log.insertHtml("<p style=\"color:#FF0000\";>Error selecting a form...</p><br>")
+                log.insertHtml("<p style=\"color:#FF0000\";>Please select a valid form.</p><br>")
