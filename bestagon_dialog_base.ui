@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
-    <height>432</height>
+    <width>598</width>
+    <height>424</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,8 +34,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>421</width>
-     <height>331</height>
+     <width>431</width>
+     <height>341</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -51,14 +51,14 @@
        <x>10</x>
        <y>10</y>
        <width>391</width>
-       <height>281</height>
+       <height>111</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>PointLayer</string>
+         <string>Point layer</string>
         </property>
        </widget>
       </item>
@@ -69,17 +69,17 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="comboBox_form">
-        <property name="placeholderText">
-         <string>Select a form</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_1">
         <property name="text">
          <string>Form</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="comboBox_form">
+        <property name="placeholderText">
+         <string>Select a form</string>
         </property>
        </widget>
       </item>
@@ -116,6 +116,99 @@
       </item>
      </layout>
     </widget>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>401</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Optional params for instant shaping</string>
+     </property>
+     <widget class="QWidget" name="formLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>391</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Shape layer</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox_shape"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_cut">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>151</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Mask form layer to shape</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>230</y>
+       <width>401</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Optional params for instant styling</string>
+     </property>
+     <widget class="QWidget" name="formLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>391</width>
+        <height>63</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_3">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Color ramp</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Number of classes</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="spinBox_classes"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="comboBox_ramps"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </widget>
    <widget class="QWidget" name="tab_log">
     <attribute name="title">
@@ -139,8 +232,8 @@
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>350</y>
+     <x>20</x>
+     <y>360</y>
      <width>571</width>
      <height>23</height>
     </rect>

@@ -21,12 +21,14 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from PyQt5.QtXml import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 
-from qgis.core import QgsProject
-from qgis.core import QgsMapLayerProxyModel
+from qgis.core import *
+
+import processing
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -188,18 +190,34 @@ class bestagon:
             "Diamond": 3,
             "Hexagon": 4
         }
+        colors_keys = [
+            "Greys", "Blues", "Greens", "Reds", "Purples", "Magma", "Inferno", "Viridis","Spectral", "Plasma", "BrBG",
+            "BuGn", "BuPu", "GnBu", "OrRd", "PiYG", "PRGn", "PuBu", "PuBuGn", "PuOr", "PuRd", "RdBu", "RdGy", "RdGy",
+            "RdPu", "RdYlBu", "RdYlGn"
+        ]
+        ex_w_r = .05
+        ex_w_l = .06
+        ex_h_u = .01
+        ex_h_d = .01
+
+        default_style = QgsStyle().defaultStyle()
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
+        if self.first_start:
             self.first_start = False
             self.dlg = bestagonDialog()
 
             # init filters
             self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer)
+            self.dlg.mMapLayerComboBox_shape.setFilters(QgsMapLayerProxyModel.PolygonLayer)
 
             # init values
             self.dlg.comboBox_form.addItems(forms.keys())
+            ramp_select = self.dlg.comboBox_ramps
+
+            for color_key in colors_keys:
+                ramp_select.addItem(QgsSymbolLayerUtils.colorRampPreviewIcon(default_style.colorRamp(color_key), QSize(16, 16)), color_key)
 
         self.dlg.button_box.accepted.disconnect()
         self.dlg.button_box.accepted.connect(self.run)
@@ -209,11 +227,16 @@ class bestagon:
 
         # init default views
         point_layer_select = self.dlg.mMapLayerComboBox_points
+        shape_layer_select = self.dlg.mMapLayerComboBox_shape
+        ramp_select = self.dlg.comboBox_ramps
+
         log = self.dlg.log_entry
         tab = self.dlg.tabWidget
 
         edit_width = self.dlg.lineEdit_width
         edit_height = self.dlg.lineEdit_height
+
+        spin_num_classes = self.dlg.spinBox_classes
 
         # Run the dialog event loop
         result = self.dlg.exec_()
@@ -228,42 +251,113 @@ class bestagon:
             log.insertHtml("Loading Suuiii!<br><br>")
 
             form = self.dlg.comboBox_form.currentText()
+            cut = self.dlg.checkBox_cut.isChecked()
+
             points = point_layer_select.currentLayer()
-            points.extent()
-
-            log.append(str(points.extent()))
-
-            #processing.run("native:polygonfromlayerextent",{
-            #    'INPUT': 'B:/projects/RProjects/animal_movement/qgis/cafes.gpkg | layername=cafes',
-            #    'ROUND_TO': 0,
-            #    'OUTPUT': 'TEMPORARY_OUTPUT'
-            #})
 
             if form in forms:
 
                 log.append("Selected form: " + form)
+                log.append("")
 
-                #Fetch form size
+                # Fetch form size
                 try:
                     width = float(edit_width.text())
                     height = float(edit_height.text())
 
                     log.append("Found width to be: " + str(width) + "km")
                     log.append("Found height to be: " + str(height) + "km")
+                    log.append("")
+                    log.append("")
+                    log.append("")
 
-                    #processing.run("native:creategrid", {
-                    #    'TYPE': forms[form],
-                    #    'EXTENT': '8.596003700,9.835141800,41.386694700,43.050699100 [EPSG:4326]',
-                    #    'HSPACING': 10000, 'VSPACING': 10000, 'HOVERLAY': 0,
-                    #    'VOVERLAY': 0,
-                    #    'CRS': QgsCoordinateReferenceSystem('EPSG:3857'),
-                    #    'OUTPUT': 'TEMPORARY_OUTPUT'
-                    #})
+                    extent = points.extent()
+                    crs = points.sourceCrs()
 
-                except ZeroDivisionError:
-                    log.insertHtml("<p style=\"color:#FF0000\";>Error fetching form size...</p><br>")
+                    grid = processing.run("native:creategrid", {
+                        'TYPE': forms[form],
+                        'EXTENT': str.format(
+                            '{},{},{},{} [{}]',
+                            extent.xMinimum() - (extent.xMinimum() * ex_w_l),
+                            extent.xMaximum() + (extent.xMaximum() * ex_w_r),
+                            extent.yMinimum() - (extent.yMinimum() * ex_h_d),
+                            extent.yMaximum() + (extent.yMaximum() * ex_h_u),
+                            crs.authid()
+                        ),
+                        'HSPACING': width * 1000,
+                        'VSPACING': height * 1000,
+                        'HOVERLAY': 0,
+                        'CRS': QgsCoordinateReferenceSystem(str(QgsProject.instance().crs().authid())),
+                        'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                    })['OUTPUT']
+
+                    intensities = processing.run("native:countpointsinpolygon", {
+                        'POLYGONS': grid,
+                        'POINTS': points,
+                        'WEIGHT': '',
+                        'CLASSFIELD': '',
+                        'FIELD': 'NUMPOINTS',
+                        'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                    })['OUTPUT']
+
+                    if cut:
+                        shape_layer = shape_layer_select.currentLayer()
+
+                        if shape_layer is not None:
+                            intensities = processing.run("native:clip", {
+                                'INPUT': intensities,
+                                'OVERLAY': shape_layer,
+                                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                            })['OUTPUT']
+
+                        else:
+                            log.insertHtml("<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
+                            log.insertHtml(
+                                "<p style=\"color:#FF0000\";>Please select a valid shape to cut your form layer to.</p><br>")
+
+                    max_value = max([feat["NUMPOINTS"] for feat in intensities.getFeatures()])
+
+                    num_classes = round(max_value / 2)
+                    classification_method = QgsClassificationJenks()
+
+                    amount_of_classes_evtl = spin_num_classes.value()
+
+                    if amount_of_classes_evtl > 0:
+                        num_classes = amount_of_classes_evtl
+                    else:
+                        log.insertHtml("<p style=\"color:#f2b202\";>Number of classes was smaller than one. Selecting <b>" + str(num_classes) + "</b> as default.</p><br>")
+
+                    ramp_format = QgsRendererRangeLabelFormat()
+                    ramp_format.setFormat("%1 - %2")
+                    ramp_format.setPrecision(2)
+                    ramp_format.setTrimTrailingZeroes(True)
+
+                    renderer = QgsGraduatedSymbolRenderer()
+                    renderer.setClassAttribute('NUMPOINTS')
+                    renderer.setClassificationMethod(classification_method)
+                    renderer.setLabelFormat(ramp_format)
+                    renderer.updateClasses(intensities, num_classes)
+                    renderer.updateColorRamp(default_style.colorRamp(colors_keys[ramp_select.currentIndex()]))
+
+                    intensities.setRenderer(renderer)
+                    intensities.triggerRepaint()
+
+                    QgsProject.instance().addMapLayer(intensities)
+
+                    log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                    log.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
+                    log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+
+                except TypeError:
+                    log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
                     log.insertHtml("<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")
 
             else:
-                log.insertHtml("<p style=\"color:#FF0000\";>Error selecting a form...</p><br>")
+                log.insertHtml("<p style=\"color:#FF0000\";><b>Error selecting a form...</b></p><br>")
                 log.insertHtml("<p style=\"color:#FF0000\";>Please select a valid form.</p><br>")
+
+
+def resolve(name, basepath=None):
+    if not basepath:
+        basepath = os.path.dirname(os.path.realpath(__file__))
+    return os.path.join(basepath, name)
