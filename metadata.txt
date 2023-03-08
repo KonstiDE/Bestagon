@@ -6,14 +6,14 @@
 name=Bestagon
 qgisMinimumVersion=3.0
 description=Form (mostly Hexagon) generator for point intensities
-version=0.1
+version=1.0
 author=Konstantin Müller
 email=konstantinfinn.mueller@gmx.de
 
 about=I like hexagons.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/KonstiDE/Bestagon/issues
+repository=https://github.com/KonstiDE/Bestagon
 # End of mandatory metadata
 
 # Recommended items:
@@ -23,7 +23,7 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=hexagon, intensity, forms
 
 homepage=http://homepage
 category=Plugins
@@ -40,7 +40,7 @@ deprecated=False
 # plugin_dependencies=
 
 Category of the plugin: Raster, Vector, Database or Web
-# category=
+# category=Vector
 
 # If the plugin can run on QGIS Server.
 server=False
