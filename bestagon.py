@@ -191,7 +191,7 @@ class bestagon:
             "Hexagon": 4
         }
         colors_keys = [
-            "Greys", "Blues", "Greens", "Reds", "Purples", "Magma", "Inferno", "Viridis","Spectral", "Plasma", "BrBG",
+            "Greys", "Blues", "Greens", "Reds", "Purples", "Magma", "Inferno", "Viridis", "Spectral", "Plasma", "BrBG",
             "BuGn", "BuPu", "GnBu", "OrRd", "PiYG", "PRGn", "PuBu", "PuBuGn", "PuOr", "PuRd", "RdBu", "RdGy", "RdGy",
             "RdPu", "RdYlBu", "RdYlGn"
         ]
@@ -217,7 +217,9 @@ class bestagon:
             ramp_select = self.dlg.comboBox_ramps
 
             for color_key in colors_keys:
-                ramp_select.addItem(QgsSymbolLayerUtils.colorRampPreviewIcon(default_style.colorRamp(color_key), QSize(16, 16)), color_key)
+                ramp_select.addItem(
+                    QgsSymbolLayerUtils.colorRampPreviewIcon(default_style.colorRamp(color_key), QSize(16, 16)),
+                    color_key)
 
         self.dlg.button_box.accepted.disconnect()
         self.dlg.button_box.accepted.connect(self.run)
@@ -229,6 +231,7 @@ class bestagon:
         point_layer_select = self.dlg.mMapLayerComboBox_points
         shape_layer_select = self.dlg.mMapLayerComboBox_shape
         ramp_select = self.dlg.comboBox_ramps
+        progress_bar = self.dlg.progressBar
 
         log = self.dlg.log_entry
         tab = self.dlg.tabWidget
@@ -237,6 +240,13 @@ class bestagon:
         edit_height = self.dlg.lineEdit_height
 
         spin_num_classes = self.dlg.spinBox_classes
+
+        # Processing feedback
+        def progress_changed(progress):
+            progress_bar.setValue(progress)
+
+        f = QgsProcessingFeedback()
+        f.progressChanged.connect(progress_changed)
 
         # Run the dialog event loop
         result = self.dlg.exec_()
@@ -289,7 +299,7 @@ class bestagon:
                         'HOVERLAY': 0,
                         'CRS': QgsCoordinateReferenceSystem(str(QgsProject.instance().crs().authid())),
                         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                    })['OUTPUT']
+                    }, feedback=f)['OUTPUT']
 
                     intensities = processing.run("native:countpointsinpolygon", {
                         'POLYGONS': grid,
@@ -298,7 +308,7 @@ class bestagon:
                         'CLASSFIELD': '',
                         'FIELD': 'NUMPOINTS',
                         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                    })['OUTPUT']
+                    }, feedback=f)['OUTPUT']
 
                     if cut:
                         shape_layer = shape_layer_select.currentLayer()
@@ -308,7 +318,7 @@ class bestagon:
                                 'INPUT': intensities,
                                 'OVERLAY': shape_layer,
                                 'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                            })['OUTPUT']
+                            }, feedback=f)['OUTPUT']
 
                         else:
                             log.insertHtml("<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
@@ -325,7 +335,9 @@ class bestagon:
                     if amount_of_classes_evtl > 0:
                         num_classes = amount_of_classes_evtl
                     else:
-                        log.insertHtml("<p style=\"color:#f2b202\";>Number of classes was smaller than one. Selecting <b>" + str(num_classes) + "</b> as default.</p><br>")
+                        log.insertHtml(
+                            "<p style=\"color:#f2b202\";>Number of classes was smaller than one. Selecting <b>" + str(
+                                num_classes) + "</b> as default.</p><br>")
 
                     ramp_format = QgsRendererRangeLabelFormat()
                     ramp_format.setFormat("%1 - %2")
@@ -347,6 +359,8 @@ class bestagon:
                     log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
                     log.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
                     log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+
+                    progress_bar.setValue(progress_bar.maximum())
 
                 except TypeError:
                     log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
