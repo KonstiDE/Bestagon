@@ -21,7 +21,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtXml import *
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
@@ -30,8 +29,16 @@ from qgis.core import *
 
 import processing
 
+from .form_processes.process_special import (
+    triangle,
+    fishers_net
+)
+
+from .form_processes.process_base import (
+    base_forms
+)
+
 # Initialize Qt resources from file resources.py
-from .resources import *
 # Import the code for the dialog
 from .bestagon_dialog import bestagonDialog
 import os.path
@@ -49,6 +56,7 @@ class bestagon:
         :type iface: QgsInterface
         """
         # Save reference to the QGIS interface
+        self.dlg = None
         self.iface = iface
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -190,15 +198,15 @@ class bestagon:
             "Diamond": 3,
             "Hexagon": 4
         }
+        special_forms = {
+            "Triangle",
+            "Fishernet (beta)"
+        }
         colors_keys = [
             "Greys", "Blues", "Greens", "Reds", "Purples", "Magma", "Inferno", "Viridis", "Spectral", "Plasma", "BrBG",
             "BuGn", "BuPu", "GnBu", "OrRd", "PiYG", "PRGn", "PuBu", "PuBuGn", "PuOr", "PuRd", "RdBu", "RdGy", "RdGy",
             "RdPu", "RdYlBu", "RdYlGn"
         ]
-        ex_w_r = .05
-        ex_w_l = .06
-        ex_h_u = .01
-        ex_h_d = .01
 
         default_style = QgsStyle().defaultStyle()
 
@@ -214,6 +222,7 @@ class bestagon:
 
             # init values
             self.dlg.comboBox_form.addItems(forms.keys())
+            self.dlg.comboBox_form.addItems(special_forms)
             ramp_select = self.dlg.comboBox_ramps
 
             for color_key in colors_keys:
@@ -265,8 +274,7 @@ class bestagon:
 
             points = point_layer_select.currentLayer()
 
-            if form in forms:
-
+            if form in forms.keys() or form in special_forms:
                 log.append("Selected form: " + form)
                 log.append("")
 
@@ -284,22 +292,13 @@ class bestagon:
                     extent = points.extent()
                     crs = points.sourceCrs()
 
-                    grid = processing.run("native:creategrid", {
-                        'TYPE': forms[form],
-                        'EXTENT': str.format(
-                            '{},{},{},{} [{}]',
-                            extent.xMinimum() - (extent.xMinimum() * ex_w_l),
-                            extent.xMaximum() + (extent.xMaximum() * ex_w_r),
-                            extent.yMinimum() - (extent.yMinimum() * ex_h_d),
-                            extent.yMaximum() + (extent.yMaximum() * ex_h_u),
-                            crs.authid()
-                        ),
-                        'HSPACING': width * 1000,
-                        'VSPACING': height * 1000,
-                        'HOVERLAY': 0,
-                        'CRS': QgsCoordinateReferenceSystem(str(QgsProject.instance().crs().authid())),
-                        'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                    }, feedback=f)['OUTPUT']
+                    if form in special_forms:
+                        if form.startswith("Triangle"):
+                            grid = triangle(crs=crs, width=width, height=height, extent=extent, feedback_process=f)
+                        elif form.startswith("Fishernet"):
+                            grid = fishers_net(crs=crs, width=width, height=height, extent=extent, feedback_process=f)
+                    else:
+                        grid = base_forms(crs=crs, width=width, height=height, extent=extent, form_id=forms[form], feedback_process=f)
 
                     intensities = processing.run("native:countpointsinpolygon", {
                         'POLYGONS': grid,
