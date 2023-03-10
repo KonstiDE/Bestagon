@@ -49,8 +49,8 @@ def fishers_net(crs, width, height, extent, feedback_process):
             extent.yMaximum() + (extent.yMaximum() * ex_h_u),
             crs.authid()
         ),
-        'HSPACING': width * 1000,
-        'VSPACING': height * 1000,
+        'HSPACING': width * 1000 - 0.00001,
+        'VSPACING': height * 1000 - 0.00001,
         'HOVERLAY': 0,
         'CRS': QgsCoordinateReferenceSystem(str(QgsProject.instance().crs().authid())),
         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
