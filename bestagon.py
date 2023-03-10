@@ -271,6 +271,7 @@ class bestagon:
 
             form = self.dlg.comboBox_form.currentText()
             cut = self.dlg.checkBox_cut.isChecked()
+            cut_soft = self.dlg.checkBox_soft.isChecked()
 
             points = point_layer_select.currentLayer()
 
@@ -313,11 +314,19 @@ class bestagon:
                         shape_layer = shape_layer_select.currentLayer()
 
                         if shape_layer is not None:
-                            intensities = processing.run("native:clip", {
-                                'INPUT': intensities,
-                                'OVERLAY': shape_layer,
-                                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                            }, feedback=f)['OUTPUT']
+                            if not cut_soft:
+                                intensities = processing.run("native:clip", {
+                                    'INPUT': intensities,
+                                    'OVERLAY': shape_layer,
+                                    'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                                }, feedback=f)['OUTPUT']
+                            else:
+                                intensities = processing.run("native:extractbylocation", {
+                                    'INPUT': intensities,
+                                    'PREDICATE': [0],
+                                    'INTERSECT': shape_layer,
+                                    'OUTPUT': 'TEMPORARY_OUTPUT'
+                                }, feedback=f)['OUTPUT']
 
                         else:
                             log.insertHtml("<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
