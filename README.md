@@ -45,11 +45,24 @@ Call the installed Bestagon QGIS plugin and setup the following settings:
       * __Color ramp:__ ``GnBu`` (customizable also later on)
       * __Number of classes:__ ``35``
 
+\
+\
 The configuration should then look like the denoted:
+
 ![Setup](readme/usage_step_2.PNG)
 
 Hit run and enjoy :stuck_out_tongue:. The output will look like depicted in the following picture:
+
 ![Result](readme/usage_result.PNG)
 
+As shown, the bakery density is indeed clustered in the land of the bread, Germany.
+Through the fast and easy visualization we can easy obtain, that bread variety decreases the more 
+north-east you go, as less bakeries are available. We show of the further potential of Bestagon by the bakery density
+in only Germany testing out the settings it provides:
 
+|             Rectangle              |             Diamond              |             Hexagon              |             Triangle              |          Fishernet (beta)          |
+|:----------------------------------:|:--------------------------------:|:--------------------------------:|:---------------------------------:|:----------------------------------:|
+| ![](readme/examples/rectangle.PNG) | ![](readme/examples/diamond.PNG) | ![](readme/examples/hexagon.PNG) | ![](readme/examples/triangle.PNG) | ![](readme/examples/fishernet.PNG) |
 
+Through the soft cut option (``Keep form``), we preserve forms at the border at remove only form not intersecting with
+the shape file provided.
