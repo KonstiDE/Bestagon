@@ -65,4 +65,6 @@ in only Germany testing out the settings it provides:
 | ![](readme/examples/rectangle.PNG) | ![](readme/examples/diamond.PNG) | ![](readme/examples/hexagon.PNG) | ![](readme/examples/triangle.PNG) | ![](readme/examples/fishernet.PNG) |
 
 Through the soft cut option (``Keep form``), we preserve forms at the border at remove only form not intersecting with
-the shape file provided.
+the shape file provided. We depict a soft cut version in the following figure:
+
+![soft_cut](readme/examples/soft_cut.PNG)
