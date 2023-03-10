@@ -57,8 +57,8 @@ Hit run and enjoy :stuck_out_tongue:. The output will look like depicted in the 
 
 As shown, the bakery density is indeed clustered in the land of the bread, Germany.
 Through the fast and easy visualization we can easy obtain, that bread variety decreases the more 
-north-east you go, as less bakeries are available. We show of the further potential of Bestagon by the bakery density
-in only Germany testing out the settings it provides:
+north-east you go, as less bakeries are available. We show of further potential of Bestagon with the bakery density
+in only Germany by testing out the settings it provides for different shapes:
 
 |             Rectangle              |             Diamond              |             Hexagon              |             Triangle              |          Fishernet (beta)          |
 |:----------------------------------:|:--------------------------------:|:--------------------------------:|:---------------------------------:|:----------------------------------:|
