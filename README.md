@@ -29,7 +29,27 @@ following steps:
 We here utilize a point layer of QuickOSM of all backeries in europe and the world GADM administrative 
 boundaries world shapefile cut to europe (also described in Section [Examplary Usage](#examplary-usage)).
 
-2. 
+2. Bestagon settings
+Call the installed Bestagon QGIS plugin and setup the following settings:
+    * Mandatory params:
+      * __Point layer:__ ``export.json`` (Bakery point layer from QuickOSM)
+      * __Form width:__ ``100 (km)``
+      * __Form height:__ ``100 (km)``
+
+    * Optional shape params:
+      * __Shape layer:__ ``europe_clip.gpkg`` (Clipped administrative border layer from GADM)
+      * [x] Mask layer
+      * [ ] Keep form (not recommended for large extends)
+
+    * Optinal style params:
+      * __Color ramp:__ ``GnBu`` (customizable also later on)
+      * __Number of classes:__ ``35``
+
+The configuration should then look like the denoted:
+![Setup](readme/usage_step_2.PNG)
+
+Hit run and enjoy :stuck_out_tongue:. The output will look like depicted in the following picture:
+![Result](readme/usage_result.PNG)
 
 
 

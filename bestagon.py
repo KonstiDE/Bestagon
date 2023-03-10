@@ -310,6 +310,8 @@ class bestagon:
                         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
                     }, feedback=f)['OUTPUT']
 
+                    log.append("Successfully build intensity-grid.")
+
                     if cut:
                         shape_layer = shape_layer_select.currentLayer()
 
@@ -328,6 +330,7 @@ class bestagon:
                                     'OUTPUT': 'TEMPORARY_OUTPUT'
                                 }, feedback=f)['OUTPUT']
 
+                            log.append("Successfully cutted to shapefile (Softcut: " + str(cut_soft) + ").")
                         else:
                             log.insertHtml("<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
                             log.insertHtml(
@@ -363,6 +366,9 @@ class bestagon:
                     intensities.triggerRepaint()
 
                     intensities.setName('Intensity')
+
+                    log.append("Successfully styled. Adding layer...")
+                    log.append("")
 
                     QgsProject.instance().addMapLayer(intensities)
 
