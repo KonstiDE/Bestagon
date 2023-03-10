@@ -362,6 +362,8 @@ class bestagon:
                     intensities.setRenderer(renderer)
                     intensities.triggerRepaint()
 
+                    intensities.setName('Intensity')
+
                     QgsProject.instance().addMapLayer(intensities)
 
                     log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
