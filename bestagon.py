@@ -28,6 +28,7 @@ from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 
 import processing
+from .resources import *
 
 from .form_processes.process_special import (
     triangle,
