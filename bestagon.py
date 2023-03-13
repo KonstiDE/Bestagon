@@ -175,7 +175,7 @@ class bestagon:
         icon_path = ':/plugins/bestagon/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u''),
+            text=self.tr(u'Bestagon'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
