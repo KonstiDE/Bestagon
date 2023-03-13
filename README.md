@@ -26,14 +26,15 @@ called the land with the most sorts of bread, we would expect the highest densit
 bakeries here. Bestagon easily gives a visual overview whether this is true through the
 following steps:
 
-1. Download the data
+1. Download the data\
 We here utilize a point layer of QuickOSM of all backeries in europe and the world GADM administrative 
-boundaries world shapefile cut to europe (also described in Section [Examplary Usage](#examplary-usage)).
+boundaries shapefile, cut to europe. (also described in Section [Examplary Usage](#examplary-usage)).
 
-2. Bestagon settings
-Call the installed Bestagon QGIS plugin and setup the following settings:
+2. Bestagon settings\
+Call the installed Bestagon QGIS plugin by the icon in the toolbar or
+via ``Plugins > Bestagon > Bestagon`` and setup the following settings:
     * Mandatory params:
-      * __Point layer:__ ``export.json`` (Bakery point layer from QuickOSM)
+      * __Point layer:__ ``export.gpkg`` (Bakery point layer from QuickOSM)
       * __Form width:__ ``100 (km)``
       * __Form height:__ ``100 (km)``
 
@@ -48,7 +49,7 @@ Call the installed Bestagon QGIS plugin and setup the following settings:
 
 \
 \
-The configuration should then look like the denoted:
+The configuration should then look like denoted:
 
 ![Setup](readme/usage_step_2.PNG)
 
@@ -57,15 +58,15 @@ Hit run and enjoy :stuck_out_tongue:. The output will look like depicted in the 
 ![Result](readme/usage_result.PNG)
 
 As shown, the bakery density is indeed clustered in the land of the bread, Germany.
-Through the fast and easy visualization we can easy obtain, that bread variety decreases the more 
-north-east you go, as less bakeries are available. We show of further potential of Bestagon with the bakery density
-in only Germany by testing out the settings it provides for different shapes:
+Through the fast and easy visualization we can directly conclude that the bread variety decreases, the more 
+north-east we go, as less bakeries are available. We show of further potential of Bestagon with the bakery density
+in Germany by playing around with the settings it provides:
 
 |             Rectangle              |             Diamond              |             Hexagon              |             Triangle              |          Fishernet (beta)          |
 |:----------------------------------:|:--------------------------------:|:--------------------------------:|:---------------------------------:|:----------------------------------:|
 | ![](readme/examples/rectangle.PNG) | ![](readme/examples/diamond.PNG) | ![](readme/examples/hexagon.PNG) | ![](readme/examples/triangle.PNG) | ![](readme/examples/fishernet.PNG) |
 
-Through the soft cut option (``Keep form``), we preserve forms at the border at remove only form not intersecting with
-the shape file provided. We depict a soft cut version in the following figure:
+Through the soft cut option (``Keep form``), we preserve forms at the border and remove (not) forms not intersecting with
+the shape file provided. We depict a soft-cut version in the following figure:
 
 ![soft_cut](readme/examples/soft_cut.PNG)
