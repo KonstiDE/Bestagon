@@ -24,6 +24,7 @@
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
+from qgis.PyQt.QtWebKit import *
 
 from qgis.core import *
 
@@ -201,7 +202,8 @@ class bestagon:
         }
         special_forms = {
             "Triangle",
-            "Fishernet (beta)"
+            "Fishernet (beta)",
+            "Bubbles / Heatmap"
         }
         colors_keys = [
             "Greys", "Blues", "Greens", "Reds", "Purples", "Magma", "Inferno", "Viridis", "Spectral", "Plasma", "BrBG",
@@ -224,12 +226,20 @@ class bestagon:
             # init values
             self.dlg.comboBox_form.addItems(forms.keys())
             self.dlg.comboBox_form.addItems(special_forms)
+
             ramp_select = self.dlg.comboBox_ramps
 
             for color_key in colors_keys:
                 ramp_select.addItem(
                     QgsSymbolLayerUtils.colorRampPreviewIcon(default_style.colorRamp(color_key), QSize(16, 16)),
                     color_key)
+
+        def show_help():
+            wv = QWebView(None)
+            wv.load(QUrl('https://github.com/KonstiDE/Bestagon'))
+            wv.show()
+
+        self.dlg.button_box.buttons()[2].clicked.connect(show_help)
 
         self.dlg.button_box.accepted.disconnect()
         self.dlg.button_box.accepted.connect(self.run)
@@ -245,11 +255,35 @@ class bestagon:
 
         log = self.dlg.log_entry
         tab = self.dlg.tabWidget
+        tab.setCurrentIndex(0)
 
         edit_width = self.dlg.lineEdit_width
         edit_height = self.dlg.lineEdit_height
 
         spin_num_classes = self.dlg.spinBox_classes
+        label_numclasses = self.dlg.label_numberclasses
+
+        render_slider = self.dlg.horizontalSlider
+        if self.dlg.comboBox_form.currentText == "Bubbles / Heatmap":
+            render_slider.setEnabled(True)
+        else:
+            render_slider.setEnabled(False)
+
+        # Disable functionalities
+        def form_combobox_changed(value):
+            if value == "Bubbles / Heatmap":
+                edit_width.setEnabled(False)
+                edit_height.setEnabled(False)
+                label_numclasses.setText("Radius (in km)")
+                render_slider.setEnabled(True)
+            else:
+                edit_width.setEnabled(True)
+                edit_height.setEnabled(True)
+                spin_num_classes.setEnabled(True)
+                label_numclasses.setText("Number of classes")
+                render_slider.setEnabled(False)
+
+        self.dlg.comboBox_form.currentTextChanged.connect(form_combobox_changed)
 
         # Processing feedback
         def progress_changed(progress):
@@ -281,111 +315,138 @@ class bestagon:
                     log.append("Selected form: " + form)
                     log.append("")
 
-                    # Fetch form size
-                    try:
-                        width = float(edit_width.text())
-                        height = float(edit_height.text())
+                    if not form == "Bubbles / Heatmap":
 
-                        log.append("Found width to be: " + str(width) + "km")
-                        log.append("Found height to be: " + str(height) + "km")
-                        log.append("")
-                        log.append("")
-                        log.append("")
+                        # Fetch form size
+                        try:
+                            width = float(edit_width.text())
+                            height = float(edit_height.text())
 
-                        extent = points.extent()
-                        crs = points.sourceCrs()
+                            log.append("Found width to be: " + str(width) + "km")
+                            log.append("Found height to be: " + str(height) + "km")
+                            log.append("")
+                            log.append("")
+                            log.append("")
 
-                        if form in special_forms:
-                            if form.startswith("Triangle"):
-                                grid = triangle(crs=crs, width=width, height=height, extent=extent, feedback_process=f)
-                            elif form.startswith("Fishernet"):
-                                grid = fishers_net(crs=crs, width=width, height=height, extent=extent,
-                                                   feedback_process=f)
-                        else:
-                            grid = base_forms(crs=crs, width=width, height=height, extent=extent, form_id=forms[form],
-                                              feedback_process=f)
+                            extent = points.extent()
+                            crs = points.sourceCrs()
 
-                        intensities = processing.run("native:countpointsinpolygon", {
-                            'POLYGONS': grid,
-                            'POINTS': points,
-                            'WEIGHT': '',
-                            'CLASSFIELD': '',
-                            'FIELD': 'NUMPOINTS',
-                            'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                        }, feedback=f)['OUTPUT']
+                            if form in special_forms:
+                                if form.startswith("Triangle"):
+                                    grid = triangle(crs=crs, width=width, height=height, extent=extent,
+                                                    feedback_process=f)
+                                elif form.startswith("Fishernet"):
+                                    grid = fishers_net(crs=crs, width=width, height=height, extent=extent,
+                                                       feedback_process=f)
+                            else:
+                                grid = base_forms(crs=crs, width=width, height=height, extent=extent,
+                                                  form_id=forms[form],
+                                                  feedback_process=f)
 
-                        log.append("Successfully build intensity-grid.")
+                            intensities = processing.run("native:countpointsinpolygon", {
+                                'POLYGONS': grid,
+                                'POINTS': points,
+                                'WEIGHT': '',
+                                'CLASSFIELD': '',
+                                'FIELD': 'NUMPOINTS',
+                                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                            }, feedback=f)['OUTPUT']
 
-                        if cut:
-                            shape_layer = shape_layer_select.currentLayer()
+                            log.append("Successfully build intensity-grid.")
 
-                            if shape_layer is not None:
-                                if not cut_soft:
-                                    intensities = processing.run("native:clip", {
-                                        'INPUT': intensities,
-                                        'OVERLAY': shape_layer,
-                                        'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                                    }, feedback=f)['OUTPUT']
+                            if cut:
+                                shape_layer = shape_layer_select.currentLayer()
+
+                                if shape_layer is not None:
+                                    if not cut_soft:
+                                        intensities = processing.run("native:clip", {
+                                            'INPUT': intensities,
+                                            'OVERLAY': shape_layer,
+                                            'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                                        }, feedback=f)['OUTPUT']
+                                    else:
+                                        intensities = processing.run("native:extractbylocation", {
+                                            'INPUT': intensities,
+                                            'PREDICATE': [0],
+                                            'INTERSECT': shape_layer,
+                                            'OUTPUT': 'TEMPORARY_OUTPUT'
+                                        }, feedback=f)['OUTPUT']
+
+                                    log.append("Successfully cutted to shapefile (Softcut: " + str(cut_soft) + ").")
                                 else:
-                                    intensities = processing.run("native:extractbylocation", {
-                                        'INPUT': intensities,
-                                        'PREDICATE': [0],
-                                        'INTERSECT': shape_layer,
-                                        'OUTPUT': 'TEMPORARY_OUTPUT'
-                                    }, feedback=f)['OUTPUT']
+                                    log.insertHtml(
+                                        "<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
+                                    log.insertHtml(
+                                        "<p style=\"color:#FF0000\";>Please select a valid shape to cut your form layer to.</p><br>")
 
-                                log.append("Successfully cutted to shapefile (Softcut: " + str(cut_soft) + ").")
+                            max_value = max([feat["NUMPOINTS"] for feat in intensities.getFeatures()])
+
+                            num_classes = round(max_value / 2)
+                            classification_method = QgsClassificationJenks()
+
+                            amount_of_classes_evtl = spin_num_classes.value()
+
+                            if amount_of_classes_evtl > 0:
+                                num_classes = amount_of_classes_evtl
                             else:
                                 log.insertHtml(
-                                    "<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
-                                log.insertHtml(
-                                    "<p style=\"color:#FF0000\";>Please select a valid shape to cut your form layer to.</p><br>")
+                                    "<p style=\"color:#f2b202\";>Number of classes was smaller than one. Selecting <b>" + str(
+                                        num_classes) + "</b> as default.</p><br>")
 
-                        max_value = max([feat["NUMPOINTS"] for feat in intensities.getFeatures()])
+                            ramp_format = QgsRendererRangeLabelFormat()
+                            ramp_format.setFormat("%1 - %2")
+                            ramp_format.setPrecision(2)
+                            ramp_format.setTrimTrailingZeroes(True)
 
-                        num_classes = round(max_value / 2)
-                        classification_method = QgsClassificationJenks()
+                            renderer = QgsGraduatedSymbolRenderer()
+                            renderer.setClassAttribute('NUMPOINTS')
+                            renderer.setClassificationMethod(classification_method)
+                            renderer.setLabelFormat(ramp_format)
+                            renderer.updateClasses(intensities, num_classes)
+                            renderer.updateColorRamp(default_style.colorRamp(colors_keys[ramp_select.currentIndex()]))
 
-                        amount_of_classes_evtl = spin_num_classes.value()
+                            intensities.setRenderer(renderer)
+                            intensities.triggerRepaint()
 
-                        if amount_of_classes_evtl > 0:
-                            num_classes = amount_of_classes_evtl
-                        else:
+                            intensities.setName('Intensity')
+
+                            log.append("Successfully styled. Adding layer...")
+                            log.append("")
+
+                            QgsProject.instance().addMapLayer(intensities)
+
+                            log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                            log.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
+                            log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+
+                            progress_bar.setValue(progress_bar.maximum())
+
+                        except TypeError:
+                            log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
                             log.insertHtml(
-                                "<p style=\"color:#f2b202\";>Number of classes was smaller than one. Selecting <b>" + str(
-                                    num_classes) + "</b> as default.</p><br>")
+                                "<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")
 
-                        ramp_format = QgsRendererRangeLabelFormat()
-                        ramp_format.setFormat("%1 - %2")
-                        ramp_format.setPrecision(2)
-                        ramp_format.setTrimTrailingZeroes(True)
+                    else:
+                        # No grid to create, only do heatmap styling
+                        points.selectAll()
+                        points_copy = processing.run("native:saveselectedfeatures", {
+                            'INPUT': points,
+                            'OUTPUT': 'memory:'
+                        }, feedback=f)['OUTPUT']
+                        points.removeSelection()
+                        QgsProject.instance().addMapLayer(points_copy)
 
-                        renderer = QgsGraduatedSymbolRenderer()
-                        renderer.setClassAttribute('NUMPOINTS')
-                        renderer.setClassificationMethod(classification_method)
-                        renderer.setLabelFormat(ramp_format)
-                        renderer.updateClasses(intensities, num_classes)
-                        renderer.updateColorRamp(default_style.colorRamp(colors_keys[ramp_select.currentIndex()]))
+                        renderer = QgsHeatmapRenderer()
+                        color_ramp = default_style.colorRamp(colors_keys[ramp_select.currentIndex()])
+                        color_ramp.setColor1(QColor(43, 131, 186, 0))
+                        renderer.setColorRamp(color_ramp)
+                        renderer.setRenderQuality(render_slider.value())
 
-                        intensities.setRenderer(renderer)
-                        intensities.triggerRepaint()
-
-                        intensities.setName('Intensity')
-
-                        log.append("Successfully styled. Adding layer...")
-                        log.append("")
-
-                        QgsProject.instance().addMapLayer(intensities)
-
-                        log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
-                        log.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
-                        log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                        points_copy.setRenderer(renderer)
+                        points_copy.triggerRepaint()
+                        points_copy.setName("Agglomerations")
 
                         progress_bar.setValue(progress_bar.maximum())
-
-                    except TypeError:
-                        log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
-                        log.insertHtml("<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")
 
                 else:
                     log.insertHtml("<p style=\"color:#FF0000\";><b>Error selecting a form...</b></p><br>")

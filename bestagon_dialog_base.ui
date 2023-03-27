@@ -2,22 +2,28 @@
 <ui version="4.0">
  <class>bestagonDialogBase</class>
  <widget class="QDialog" name="bestagonDialogBase">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>595</width>
-    <height>444</height>
+    <width>591</width>
+    <height>479</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Bestagon</string>
   </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
   <widget class="QDialogButtonBox" name="button_box">
    <property name="geometry">
     <rect>
      <x>350</x>
-     <y>410</y>
+     <y>450</y>
      <width>241</width>
      <height>32</height>
     </rect>
@@ -35,11 +41,11 @@
      <x>10</x>
      <y>10</y>
      <width>431</width>
-     <height>361</height>
+     <height>401</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_parameters">
     <attribute name="title">
@@ -50,8 +56,8 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>391</width>
-       <height>111</height>
+       <width>401</width>
+       <height>120</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout">
@@ -78,6 +84,12 @@
       </item>
       <item row="1" column="1">
        <widget class="QComboBox" name="comboBox_form">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="editable">
+         <bool>false</bool>
+        </property>
         <property name="placeholderText">
          <string>Select a form</string>
         </property>
@@ -121,7 +133,7 @@
       <rect>
        <x>10</x>
        <y>150</y>
-       <width>401</width>
+       <width>411</width>
        <height>91</height>
       </rect>
      </property>
@@ -134,7 +146,7 @@
         <x>10</x>
         <y>20</y>
         <width>391</width>
-        <height>24</height>
+        <height>27</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout_2">
@@ -155,7 +167,7 @@
        <rect>
         <x>10</x>
         <y>50</y>
-        <width>151</width>
+        <width>271</width>
         <height>17</height>
        </rect>
       </property>
@@ -168,7 +180,7 @@
        <rect>
         <x>10</x>
         <y>70</y>
-        <width>251</width>
+        <width>381</width>
         <height>17</height>
        </rect>
       </property>
@@ -182,8 +194,8 @@
       <rect>
        <x>10</x>
        <y>250</y>
-       <width>401</width>
-       <height>81</height>
+       <width>411</width>
+       <height>121</height>
       </rect>
      </property>
      <property name="title">
@@ -195,7 +207,7 @@
         <x>10</x>
         <y>20</y>
         <width>391</width>
-        <height>63</height>
+        <height>94</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout_3">
@@ -207,17 +219,87 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_6">
+        <widget class="QLabel" name="label_numberclasses">
          <property name="text">
           <string>Number of classes</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QSpinBox" name="spinBox_classes"/>
+        <widget class="QSpinBox" name="spinBox_classes">
+         <property name="value">
+          <number>10</number>
+         </property>
+        </widget>
        </item>
        <item row="0" column="1">
         <widget class="QComboBox" name="comboBox_ramps"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Render Quality</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_7">
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <italic>true</italic>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Best</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="font">
+            <font>
+             <italic>true</italic>
+            </font>
+           </property>
+           <property name="text">
+            <string>Fastest</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string> </string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -246,7 +328,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>380</y>
+     <y>420</y>
      <width>571</width>
      <height>23</height>
     </rect>
