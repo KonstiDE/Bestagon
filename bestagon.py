@@ -373,6 +373,7 @@ class bestagon:
                                         }, feedback=f)['OUTPUT']
 
                                     log.append("Successfully cutted to shapefile (Softcut: " + str(cut_soft) + ").")
+                                    log.append("")
                                 else:
                                     log.insertHtml(
                                         "<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
@@ -421,7 +422,7 @@ class bestagon:
 
                             progress_bar.setValue(progress_bar.maximum())
 
-                        except TypeError:
+                        except Exception:
                             log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
                             log.insertHtml(
                                 "<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")
@@ -442,11 +443,18 @@ class bestagon:
                         renderer.setColorRamp(color_ramp)
                         renderer.setRenderQuality(render_slider.value())
 
+                        log.append("Successfully styled. Adding layer...")
+                        log.append("")
+
                         points_copy.setRenderer(renderer)
                         points_copy.triggerRepaint()
                         points_copy.setName("Agglomerations")
 
                         progress_bar.setValue(progress_bar.maximum())
+
+                        log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                        log.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
+                        log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
 
                 else:
                     log.insertHtml("<p style=\"color:#FF0000\";><b>Error selecting a form...</b></p><br>")
