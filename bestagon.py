@@ -422,7 +422,7 @@ class bestagon:
 
                             progress_bar.setValue(progress_bar.maximum())
 
-                        except Exception:
+                        except ValueError:
                             log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
                             log.insertHtml(
                                 "<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")

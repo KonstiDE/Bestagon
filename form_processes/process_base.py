@@ -28,6 +28,6 @@ def base_forms(crs, width, height, extent, form_id, feedback_process):
         'HSPACING': width * 1000,
         'VSPACING': height * 1000,
         'HOVERLAY': 0,
-        'CRS': QgsCoordinateReferenceSystem(str(QgsProject.instance().crs().authid())),
+        'CRS': crs.authid(),
         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
     }, feedback=feedback_process)['OUTPUT']
