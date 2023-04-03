@@ -7,7 +7,7 @@ The Bestagon plugin allows fast visualization for point intensities
 represented by different forms as rectangles or hexagons. More forms 
 are coming soon...
 
-:warning:**Right now, Bestagon is restricted to EPGS:3857. We are working on a solution for supporting abitrary CRS.**:warning:
+:construction:**Right now, Bestagon binds to the CRS of the layers provided. Given which CRS you use, it could be unstable.**:construction:
 
 ## Installation
 Download the [zip file](https://github.com/KonstiDE/Bestagon/archive/refs/heads/master.zip)
