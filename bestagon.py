@@ -45,6 +45,8 @@ from .form_processes.process_base import (
 from .bestagon_dialog import bestagonDialog
 import os.path
 
+import webbrowser
+
 
 class bestagon:
     """QGIS Plugin Implementation."""
@@ -236,9 +238,7 @@ class bestagon:
                     color_key)
 
         def show_help():
-            wv = QWebView(None)
-            wv.load(QUrl('https://github.com/KonstiDE/Bestagon'))
-            wv.show()
+            webbrowser.open("https://github.com/KonstiDE/Bestagon")
 
         self.dlg.button_box.buttons()[2].clicked.connect(show_help)
 
