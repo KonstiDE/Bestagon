@@ -25,8 +25,8 @@ def base_forms(crs, width, height, extent, form_id, feedback_process):
             extent.yMaximum() + (extent.yMaximum() * ex_h_u),
             crs.authid()
         ),
-        'HSPACING': width * 1000,
-        'VSPACING': height * 1000,
+        'HSPACING': width,
+        'VSPACING': height,
         'HOVERLAY': 0,
         'CRS': crs.authid(),
         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT

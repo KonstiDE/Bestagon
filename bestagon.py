@@ -77,6 +77,7 @@ class bestagon:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Bestagon')
+        self.inDeg = False
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -292,6 +293,21 @@ class bestagon:
         f = QgsProcessingFeedback()
         f.progressChanged.connect(progress_changed)
 
+        def point_layer_combobox_changed(value):
+            inner_crs = value.crs()
+            inner_map_units_string = QgsUnitTypes.encodeUnit(inner_crs.mapUnits())
+            self.dlg.label_unit_1.setText("in " + inner_map_units_string)
+            self.dlg.label_unit_2.setText("in " + inner_map_units_string)
+
+        point_layer_select.layerChanged.connect(point_layer_combobox_changed)
+
+        points = point_layer_select.currentLayer()
+        crs = points.crs()
+        map_units_string = QgsUnitTypes.encodeUnit(crs.mapUnits())
+
+        self.dlg.label_unit_1.setText("in " + map_units_string)
+        self.dlg.label_unit_2.setText("in " + map_units_string)
+
         # Run the dialog event loop
         result = self.dlg.exec_()
 
@@ -319,17 +335,16 @@ class bestagon:
 
                         # Fetch form size
                         try:
+                            extent = points.extent()
+
                             width = float(edit_width.text())
                             height = float(edit_height.text())
 
-                            log.append("Found width to be: " + str(width) + "km")
-                            log.append("Found height to be: " + str(height) + "km")
+                            log.append("Found width to be: " + str(width) + "m")
+                            log.append("Found height to be: " + str(height) + "m")
                             log.append("")
                             log.append("")
                             log.append("")
-
-                            extent = points.extent()
-                            crs = points.sourceCrs()
 
                             if form in special_forms:
                                 if form.startswith("Triangle"):

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>591</width>
+    <width>957</width>
     <height>479</height>
    </rect>
   </property>
@@ -73,6 +73,9 @@
         <property name="placeholderText">
          <string>Select a layer containing points</string>
         </property>
+        <property name="showCrs">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="1" column="0">
@@ -102,16 +105,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEdit_width">
-        <property name="placeholderText">
-         <string>1.00 km</string>
-        </property>
-        <property name="clearButtonEnabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
@@ -119,12 +112,44 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLineEdit" name="lineEdit_width">
+          <property name="placeholderText">
+           <string/>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_unit_1">
+          <property name="text">
+           <string>in meters</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item row="3" column="1">
-       <widget class="QLineEdit" name="lineEdit_height">
-        <property name="placeholderText">
-         <string>1.00 km</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLineEdit" name="lineEdit_height">
+          <property name="placeholderText">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_unit_2">
+          <property name="text">
+           <string>in meters</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -295,7 +320,7 @@
          <item>
           <widget class="QLabel" name="label_9">
            <property name="text">
-            <string> </string>
+            <string/>
            </property>
           </widget>
          </item>
