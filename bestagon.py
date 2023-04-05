@@ -237,6 +237,11 @@ class bestagon:
                     QgsSymbolLayerUtils.colorRampPreviewIcon(default_style.colorRamp(color_key), QSize(16, 16)),
                     color_key)
 
+            # Disable indicators for slider
+            self.dlg.label_6.setEnabled(False)
+            self.dlg.label_7.setEnabled(False)
+            self.dlg.label_8.setEnabled(False)
+
         def show_help():
             webbrowser.open("https://github.com/KonstiDE/Bestagon")
 
@@ -277,12 +282,18 @@ class bestagon:
                 edit_height.setEnabled(False)
                 label_numclasses.setText("Radius (in km)")
                 render_slider.setEnabled(True)
+                self.dlg.label_6.setEnabled(True)
+                self.dlg.label_7.setEnabled(True)
+                self.dlg.label_8.setEnabled(True)
             else:
                 edit_width.setEnabled(True)
                 edit_height.setEnabled(True)
                 spin_num_classes.setEnabled(True)
                 label_numclasses.setText("Number of classes")
                 render_slider.setEnabled(False)
+                self.dlg.label_6.setEnabled(False)
+                self.dlg.label_7.setEnabled(False)
+                self.dlg.label_8.setEnabled(False)
 
         self.dlg.comboBox_form.currentTextChanged.connect(form_combobox_changed)
 

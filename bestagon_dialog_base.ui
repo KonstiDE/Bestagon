@@ -10,11 +10,15 @@
     <x>0</x>
     <y>0</y>
     <width>609</width>
-    <height>492</height>
+    <height>493</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Bestagon</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icon.png</normaloff>icon.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -57,7 +61,7 @@
        <x>10</x>
        <y>10</y>
        <width>401</width>
-       <height>120</height>
+       <height>123</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout">
@@ -171,7 +175,7 @@
         <x>10</x>
         <y>20</y>
         <width>391</width>
-        <height>27</height>
+        <height>28</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout_2">
@@ -279,7 +283,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Best</string>
+            <string>Best </string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -289,7 +293,7 @@
          <item>
           <widget class="QSlider" name="horizontalSlider">
            <property name="enabled">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="minimum">
             <number>1</number>
@@ -340,7 +344,7 @@
        <x>0</x>
        <y>0</y>
        <width>421</width>
-       <height>331</height>
+       <height>371</height>
       </rect>
      </property>
      <property name="readOnly">
