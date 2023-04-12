@@ -10,10 +10,8 @@ are coming soon...
 :construction:**Right now, Bestagon binds to the CRS of the layers provided. Given which CRS you use, it could be unstable.**:construction:
 
 ## Installation
-Download the [zip file](https://github.com/KonstiDE/Bestagon/archive/refs/heads/master.zip)
-of the master branch of the current repository and install it manually via the plugin installation
-manager of QGIS. Bestagon requires a minimum QGIS version of ``3.0``. You might __restart__ QGIS once 
-after the installation.
+Search for `Bestagon` in the QGIS plugin installation manager and hit install. Alternatively download the [zip file](https://github.com/KonstiDE/Bestagon/archive/refs/heads/master.zip) of the master branch of the current repository and install it manually via the plugin installation
+manager of QGIS. Bestagon requires a minimum QGIS version of ``3.0``. You might __restart__ QGIS once after the installation.
 
 ## Exemplary Usage
 To work, Bestagon requires a point layer to display any intensity information. Anyhow,
