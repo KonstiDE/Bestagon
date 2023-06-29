@@ -60,6 +60,7 @@ class bestagon:
         :type iface: QgsInterface
         """
         # Save reference to the QGIS interface
+        self.main_buttons = None
         self.dlg = None
         self.iface = iface
         # initialize plugin directory
@@ -218,9 +219,12 @@ class bestagon:
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
+
+        self.dlg = bestagonDialog()
+
         if self.first_start:
             self.first_start = False
-            self.dlg = bestagonDialog()
+            log = self.dlg.log_entry
 
             # init filters
             self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer)
@@ -245,7 +249,9 @@ class bestagon:
         def show_help():
             webbrowser.open("https://github.com/KonstiDE/Bestagon")
 
-        self.dlg.button_box.buttons()[2].clicked.connect(show_help)
+        self.main_buttons = self.dlg.button_box.buttons()
+        help = self.main_buttons[2]
+        help.clicked.connect(show_help)
 
         self.dlg.button_box.accepted.disconnect()
         self.dlg.button_box.accepted.connect(self.run)
@@ -259,7 +265,6 @@ class bestagon:
         ramp_select = self.dlg.comboBox_ramps
         progress_bar = self.dlg.progressBar
 
-        log = self.dlg.log_entry
         tab = self.dlg.tabWidget
         tab.setCurrentIndex(0)
 
@@ -312,18 +317,18 @@ class bestagon:
 
         point_layer_select.layerChanged.connect(point_layer_combobox_changed)
 
-        points = point_layer_select.currentLayer()
-        crs = points.crs()
-        map_units_string = QgsUnitTypes.encodeUnit(crs.mapUnits())
-
-        self.dlg.label_unit_1.setText("in " + map_units_string)
-        self.dlg.label_unit_2.setText("in " + map_units_string)
-
         # Run the dialog event loop
         result = self.dlg.exec_()
 
         # See if OK was pressed
         if result:
+            points = point_layer_select.currentLayer()
+            crs = points.crs()
+            map_units_string = QgsUnitTypes.encodeUnit(crs.mapUnits())
+
+            self.dlg.label_unit_1.setText("in " + map_units_string)
+            self.dlg.label_unit_2.setText("in " + map_units_string)
+
             log.clear()
 
             tab.setCurrentIndex(1)
