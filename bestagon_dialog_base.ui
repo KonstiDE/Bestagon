@@ -77,6 +77,9 @@
         <property name="placeholderText">
          <string>Select a layer containing points</string>
         </property>
+        <property name="filters">
+         <set>QgsMapLayerProxyModel::PointLayer</set>
+        </property>
         <property name="showCrs">
          <bool>true</bool>
         </property>
@@ -187,7 +190,14 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox_shape"/>
+        <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox_shape">
+         <property name="placeholderText">
+          <string>Select a shape layer</string>
+         </property>
+         <property name="filters">
+          <set>QgsMapLayerProxyModel::All|QgsMapLayerProxyModel::AnnotationLayer|QgsMapLayerProxyModel::HasGeometry|QgsMapLayerProxyModel::LineLayer|QgsMapLayerProxyModel::MeshLayer|QgsMapLayerProxyModel::NoGeometry|QgsMapLayerProxyModel::PluginLayer|QgsMapLayerProxyModel::PointCloudLayer|QgsMapLayerProxyModel::PointLayer|QgsMapLayerProxyModel::PolygonLayer|QgsMapLayerProxyModel::RasterLayer|QgsMapLayerProxyModel::SpatialLayer|QgsMapLayerProxyModel::VectorLayer|QgsMapLayerProxyModel::VectorTileLayer|QgsMapLayerProxyModel::WritableLayer</set>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -262,7 +272,11 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QComboBox" name="comboBox_ramps"/>
+        <widget class="QComboBox" name="comboBox_ramps">
+         <property name="placeholderText">
+          <string>Select a ramp</string>
+         </property>
+        </widget>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_6">
