@@ -31,6 +31,8 @@ from qgis.core import *
 import processing
 from .resources import *
 
+from qgis.core import QgsMapLayerProxyModel
+
 from .form_processes.process_special import (
     triangle,
     fishers_net
