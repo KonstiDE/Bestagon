@@ -333,6 +333,7 @@ class bestagon:
 
             log.clear()
             self.dlg.close()
+            self.run()
 
 
         btn_cancel_proc = self.dlg.btn_cancel
