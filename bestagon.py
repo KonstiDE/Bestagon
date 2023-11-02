@@ -21,6 +21,8 @@
  *                                                                         *
  ***************************************************************************/
 """
+import gc
+
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
@@ -48,10 +50,28 @@ from .bestagon_dialog import bestagonDialog
 import os.path
 
 import webbrowser
+import multiprocessing as mp
+import subprocess
+import threading
+
+import gc
 
 
 class bestagon:
     """QGIS Plugin Implementation."""
+
+    """
+    processing.run("native:creategrid", 
+    {'TYPE':4,
+    'EXTENT':'795984.835800000,1316329.681200000,5023390.099900000,5374384.907900000 [EPSG:3857]',
+    'HSPACING':1000,
+    'VSPACING':1000,
+    'HOVERLAY':0,
+    'VOVERLAY':0,
+    'CRS':QgsCoordinateReferenceSystem('EPSG:3857'),
+    'OUTPUT':'TEMPORARY_OUTPUT'}
+    )
+    """
 
     def __init__(self, iface):
         """Constructor.
@@ -64,6 +84,7 @@ class bestagon:
         # Save reference to the QGIS interface
         self.main_buttons = None
         self.dlg = None
+        self.thread = None
         self.iface = iface
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -208,7 +229,7 @@ class bestagon:
         }
         special_forms = {
             "Triangle",
-            "Fishernet (beta)",
+            "Fishernet",
             "Bubbles / Heatmap"
         }
         colors_keys = [
@@ -224,39 +245,34 @@ class bestagon:
 
         self.dlg = bestagonDialog()
 
+        log = self.dlg.log_entry
+
         if self.first_start:
             self.first_start = False
-            log = self.dlg.log_entry
-
-            # init filters
-            self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer)
-            self.dlg.mMapLayerComboBox_shape.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-
-            # init values
-            self.dlg.comboBox_form.addItems(forms.keys())
-            self.dlg.comboBox_form.addItems(special_forms)
-
-            ramp_select = self.dlg.comboBox_ramps
-
-            for color_key in colors_keys:
-                ramp_select.addItem(
-                    QgsSymbolLayerUtils.colorRampPreviewIcon(default_style.colorRamp(color_key), QSize(16, 16)),
-                    color_key)
 
             # Disable indicators for slider
             self.dlg.label_6.setEnabled(False)
             self.dlg.label_7.setEnabled(False)
             self.dlg.label_8.setEnabled(False)
 
+
+        # init filters
+        self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.dlg.mMapLayerComboBox_shape.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+
+        ramp_select = self.dlg.comboBox_ramps
+
+        for color_key in colors_keys:
+            ramp_select.addItem(
+                QgsSymbolLayerUtils.colorRampPreviewIcon(default_style.colorRamp(color_key), QSize(16, 16)),
+                color_key)
+
+        # init values
+        self.dlg.comboBox_form.addItems(forms.keys())
+        self.dlg.comboBox_form.addItems(special_forms)
+
         def show_help():
             webbrowser.open("https://github.com/KonstiDE/Bestagon")
-
-        self.main_buttons = self.dlg.button_box.buttons()
-        help = self.main_buttons[2]
-        help.clicked.connect(show_help)
-
-        self.dlg.button_box.accepted.disconnect()
-        self.dlg.button_box.accepted.connect(self.run)
 
         # show the dialog
         self.dlg.show()
@@ -304,78 +320,89 @@ class bestagon:
 
         self.dlg.comboBox_form.currentTextChanged.connect(form_combobox_changed)
 
-        # Processing feedback
-        def progress_changed(progress):
-            progress_bar.setValue(progress)
-
         f = QgsProcessingFeedback()
-        f.progressChanged.connect(progress_changed)
 
-        def point_layer_combobox_changed(value):
-            inner_crs = value.crs()
-            inner_map_units_string = QgsUnitTypes.encodeUnit(inner_crs.mapUnits())
-            self.dlg.label_unit_1.setText("in " + inner_map_units_string)
-            self.dlg.label_unit_2.setText("in " + inner_map_units_string)
+        def cancel_process():
+            f.cancel()
+            self.thread = None
 
-        point_layer_select.layerChanged.connect(point_layer_combobox_changed)
+            gc.collect()
 
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-
-        # See if OK was pressed
-        if result:
-            points = point_layer_select.currentLayer()
-            crs = points.crs()
-            map_units_string = QgsUnitTypes.encodeUnit(crs.mapUnits())
-
-            self.dlg.label_unit_1.setText("in " + map_units_string)
-            self.dlg.label_unit_2.setText("in " + map_units_string)
+            progress_bar.setValue(0)
+            tab.setCurrentIndex(0)
 
             log.clear()
+            self.dlg.close()
 
-            tab.setCurrentIndex(1)
 
-            log.insertHtml("Started formizing...<br>")
-            log.insertHtml("Loading Suuiii!<br><br>")
+        btn_cancel_proc = self.dlg.btn_cancel
+        btn_cancel_proc.clicked.connect(cancel_process)
 
-            form = self.dlg.comboBox_form.currentText()
-            cut = self.dlg.checkBox_cut.isChecked()
-            cut_soft = self.dlg.checkBox_soft.isChecked()
+        # Keep window alive
+        self.dlg.button_box.accepted.disconnect()
 
-            points = point_layer_select.currentLayer()
+        def main_func(feedback, progress_bar_inner, point_layer_select_inner, shape_layer_select_inner,
+                      log_inner, tab_inner, dlg, ramp_select_inner):
+            # Processing feedback
+            def progress_changed(progress):
+                progress_bar_inner.setValue(progress)
+
+            feedback.progressChanged.connect(progress_changed)
+
+            points = point_layer_select_inner.currentLayer()
+            points_crs = points.crs()
+
+            shape = shape_layer_select_inner.currentLayer()
+
+            project_crs = QgsProject.instance().crs()
+
+            log_inner.clear()
+
+            tab_inner.setCurrentIndex(1)
+
+            log_inner.insertHtml("Started formizing...<br>")
+            log_inner.insertHtml("Loading Suuiii!<br><br>")
+
+            form = dlg.comboBox_form.currentText()
+            cut = dlg.checkBox_cut.isChecked()
+            cut_soft = dlg.checkBox_soft.isChecked()
 
             if points is not None:
                 if form in forms.keys() or form in special_forms:
-                    log.append("Selected form: " + form)
-                    log.append("")
+                    log_inner.append("Selected form: " + form)
+                    log_inner.append("")
 
                     if not form == "Bubbles / Heatmap":
 
                         # Fetch form size
                         try:
-                            extent = points.extent()
+                            extent = shape.extent()
 
-                            width = float(edit_width.text())
-                            height = float(edit_height.text())
+                            width = float(edit_width.text()) * 1000
+                            height = float(edit_height.text()) * 1000
 
-                            log.append("Found width to be: " + str(width) + "m")
-                            log.append("Found height to be: " + str(height) + "m")
-                            log.append("")
-                            log.append("")
-                            log.append("")
+                            log_inner.append("Found width to be: " + edit_width.text() + " km")
+                            log_inner.append("Found height to be: " + edit_height.text() + " km")
+                            log_inner.append("")
+                            log_inner.append("")
+                            log_inner.append("")
 
                             try:
                                 if form in special_forms:
                                     if form.startswith("Triangle"):
-                                        grid = triangle(crs=crs, width=width, height=height, extent=extent,
-                                                        feedback_process=f)
+                                        grid = triangle(project_crs=project_crs, point_crs=points_crs, width=width,
+                                                        height=height, extent=extent,
+                                                        feedback_process=feedback)
                                     elif form.startswith("Fishernet"):
-                                        grid = fishers_net(crs=crs, width=width, height=height, extent=extent,
-                                                           feedback_process=f)
+                                        grid = fishers_net(project_crs=project_crs, point_crs=points_crs,
+                                                           width=width,
+                                                           height=height, extent=extent,
+                                                           feedback_process=feedback)
                                 else:
-                                    grid = base_forms(crs=crs, width=width, height=height, extent=extent,
+                                    grid = base_forms(project_crs=project_crs, point_crs=points_crs, width=width,
+                                                      height=height, extent=extent,
                                                       form_id=forms[form],
-                                                      feedback_process=f)
+                                                      feedback_process=feedback)
 
                                 intensities = processing.run("native:countpointsinpolygon", {
                                     'POLYGONS': grid,
@@ -386,10 +413,10 @@ class bestagon:
                                     'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
                                 }, feedback=f)['OUTPUT']
 
-                                log.append("Successfully build intensity-grid.")
+                                log_inner.append("Successfully build intensity-grid.")
 
                                 if cut:
-                                    shape_layer = shape_layer_select.currentLayer()
+                                    shape_layer = shape_layer_select_inner.currentLayer()
 
                                     if shape_layer is not None:
                                         if not cut_soft:
@@ -406,12 +433,13 @@ class bestagon:
                                                 'OUTPUT': 'TEMPORARY_OUTPUT'
                                             }, feedback=f)['OUTPUT']
 
-                                        log.append("Successfully cutted to shapefile (Softcut: " + str(cut_soft) + ").")
-                                        log.append("")
+                                        log_inner.append(
+                                            "Successfully cutted to shapefile (Softcut: " + str(cut_soft) + ").")
+                                        log_inner.append("")
                                     else:
-                                        log.insertHtml(
+                                        log_inner.insertHtml(
                                             "<p style=\"color:#FF0000\";><b>Error processing shape layer</b></p><br>")
-                                        log.insertHtml(
+                                        log_inner.insertHtml(
                                             "<p style=\"color:#FF0000\";>Please select a valid shape to cut your form layer to.</p><br>")
 
                                 max_value = max([feat["NUMPOINTS"] for feat in intensities.getFeatures()])
@@ -424,7 +452,7 @@ class bestagon:
                                 if amount_of_classes_evtl > 0:
                                     num_classes = amount_of_classes_evtl
                                 else:
-                                    log.insertHtml(
+                                    log_inner.insertHtml(
                                         "<p style=\"color:#f2b202\";>Number of classes was smaller than one. Selecting <b>" + str(
                                             num_classes) + "</b> as default.</p><br>")
 
@@ -438,32 +466,37 @@ class bestagon:
                                 renderer.setClassificationMethod(classification_method)
                                 renderer.setLabelFormat(ramp_format)
                                 renderer.updateClasses(intensities, num_classes)
-                                renderer.updateColorRamp(default_style.colorRamp(colors_keys[ramp_select.currentIndex()]))
+                                renderer.updateColorRamp(
+                                    default_style.colorRamp(colors_keys[ramp_select_inner.currentIndex()]))
 
                                 intensities.setRenderer(renderer)
                                 intensities.triggerRepaint()
 
                                 intensities.setName('Intensity')
 
-                                log.append("Successfully styled. Adding layer...")
-                                log.append("")
+                                log_inner.append("Successfully styled. Adding layer...")
+                                log_inner.append("")
 
                                 QgsProject.instance().addMapLayer(intensities)
 
-                                log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
-                                log.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
-                                log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                                log_inner.insertHtml(
+                                    "<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                                log_inner.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
+                                log_inner.insertHtml(
+                                    "<span style=\"color:#1bb343\";>---------------------------</span><br>")
 
-                                progress_bar.setValue(progress_bar.maximum())
+                                progress_bar_inner.setValue(progress_bar_inner.maximum())
 
-                            except QgsProcessingException:
-                                log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
-                                log.insertHtml(
+                            except QgsProcessingException as qpe:
+                                log_inner.insertHtml(
+                                    "<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
+                                log_inner.insertHtml(
                                     "<p style=\"color:#FF0000\";>The given width and/or height was to large</p><br>")
+                                log_inner.append(str(qpe))
 
                         except ValueError:
-                            log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
-                            log.insertHtml(
+                            log_inner.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching form size...</b></p><br>")
+                            log_inner.insertHtml(
                                 "<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")
 
                     else:
@@ -477,31 +510,46 @@ class bestagon:
                         QgsProject.instance().addMapLayer(points_copy)
 
                         renderer = QgsHeatmapRenderer()
-                        color_ramp = default_style.colorRamp(colors_keys[ramp_select.currentIndex()])
+                        color_ramp = default_style.colorRamp(colors_keys[ramp_select_inner.currentIndex()])
                         color_ramp.setColor1(QColor(43, 131, 186, 0))
                         renderer.setColorRamp(color_ramp)
                         renderer.setRenderQuality(render_slider.value())
 
-                        log.append("Successfully styled. Adding layer...")
-                        log.append("")
+                        log_inner.append("Successfully styled. Adding layer...")
+                        log_inner.append("")
 
                         points_copy.setRenderer(renderer)
                         points_copy.triggerRepaint()
                         points_copy.setName("Agglomerations")
 
-                        progress_bar.setValue(progress_bar.maximum())
+                        progress_bar_inner.setValue(progress_bar_inner.maximum())
 
-                        log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
-                        log.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
-                        log.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                        log_inner.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
+                        log_inner.insertHtml("<span style=\"color:#1bb343\";>| Finished processing. |</span><br>")
+                        log_inner.insertHtml("<span style=\"color:#1bb343\";>---------------------------</span><br>")
 
                 else:
-                    log.insertHtml("<p style=\"color:#FF0000\";><b>Error selecting a form...</b></p><br>")
-                    log.insertHtml("<p style=\"color:#FF0000\";>Please select a valid form.</p><br>")
+                    log_inner.insertHtml("<p style=\"color:#FF0000\";><b>Error selecting a form...</b></p><br>")
+                    log_inner.insertHtml("<p style=\"color:#FF0000\";>Please select a valid form.</p><br>")
 
             else:
-                log.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching point layer...</b></p><br>")
-                log.insertHtml("<p style=\"color:#FF0000\";>Please provide valid layer containing only points.</p><br>")
+                log_inner.insertHtml("<p style=\"color:#FF0000\";><b>Error fetching point layer...</b></p><br>")
+                log_inner.insertHtml(
+                    "<p style=\"color:#FF0000\";>Please provide valid layer containing only points.</p><br>")
+
+        def main_thread():
+            self.thread = threading.Thread(target=main_func, args=(
+                f, progress_bar, point_layer_select, shape_layer_select, log, tab, self.dlg, ramp_select
+            ))
+            self.thread.start()
+
+        self.main_buttons = self.dlg.button_box.buttons()
+
+        help_btn = self.main_buttons[2]
+        help_btn.clicked.connect(show_help)
+
+        ok_btn = self.main_buttons[0]
+        ok_btn.clicked.connect(main_thread)
 
 
 def resolve(name, basepath=None):

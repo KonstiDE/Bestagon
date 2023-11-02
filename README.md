@@ -7,7 +7,7 @@ The Bestagon plugin allows fast visualization for point intensities
 represented by different forms as rectangles or hexagons. More forms 
 are coming soon...
 
-:construction:**Right now, Bestagon binds to the CRS of the layers provided. Given which CRS you use, it could be unstable.**:construction:
+:construction: It is recommended to use the same version as the plugin is developed with: **QGIS 3.34.0** :construction:
 
 ## Installation
 Search for `Bestagon` in the QGIS plugin installation manager and hit install. Alternatively download the [zip file](https://github.com/KonstiDE/Bestagon/archive/refs/heads/master.zip) of the master branch of the current repository and install it manually via the plugin installation

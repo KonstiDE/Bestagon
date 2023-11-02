@@ -131,7 +131,7 @@
         <item>
          <widget class="QLabel" name="label_unit_1">
           <property name="text">
-           <string>in meters</string>
+           <string>km</string>
           </property>
          </widget>
         </item>
@@ -149,7 +149,7 @@
         <item>
          <widget class="QLabel" name="label_unit_2">
           <property name="text">
-           <string>in meters</string>
+           <string>km</string>
           </property>
          </widget>
         </item>
@@ -364,9 +364,9 @@
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>110</x>
      <y>420</y>
-     <width>571</width>
+     <width>481</width>
      <height>23</height>
     </rect>
    </property>
@@ -387,6 +387,28 @@
    </property>
    <property name="format">
     <string>%p%</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_cancel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>420</y>
+     <width>91</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cancel Process</string>
+   </property>
+   <property name="autoDefault">
+    <bool>false</bool>
+   </property>
+   <property name="default">
+    <bool>false</bool>
+   </property>
+   <property name="flat">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

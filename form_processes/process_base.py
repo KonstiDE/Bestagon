@@ -4,30 +4,38 @@ from qgis.PyQt.QtWidgets import *
 
 from qgis.core import *
 
-from .constants import (
-    ex_w_l,
-    ex_w_r,
-    ex_h_d,
-    ex_h_u
-)
-
 import processing
 
 
-def base_forms(crs, width, height, extent, form_id, feedback_process):
+def base_forms(project_crs, point_crs, width, height, extent, form_id, feedback_process):
+    """
+    processing.run("native:creategrid",
+    {
+    'TYPE':4,
+    'EXTENT':'795984.835800000,1316329.681200000,5023390.099900000,5374384.907900000 [EPSG:3857]',
+    'HSPACING':1,
+    'VSPACING':1,
+    'HOVERLAY':0,
+    'VOVERLAY':0,
+    'CRS':QgsCoordinateReferenceSystem('EPSG:3857'),
+    'OUTPUT':'TEMPORARY_OUTPUT'}
+    )
+    """
+
     return processing.run("native:creategrid", {
         'TYPE': form_id,
         'EXTENT': str.format(
             '{},{},{},{} [{}]',
-            extent.xMinimum() - (extent.xMinimum() * ex_w_l),
-            extent.xMaximum() + (extent.xMaximum() * ex_w_r),
-            extent.yMinimum() - (extent.yMinimum() * ex_h_d),
-            extent.yMaximum() + (extent.yMaximum() * ex_h_u),
-            crs.authid()
+            extent.xMinimum(),
+            extent.xMaximum(),
+            extent.yMinimum(),
+            extent.yMaximum(),
+            point_crs.authid()
         ),
         'HSPACING': width,
         'VSPACING': height,
         'HOVERLAY': 0,
-        'CRS': crs.authid(),
+        'VOVERLAY': 0,
+        'CRS': project_crs,
         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
     }, feedback=feedback_process)['OUTPUT']
