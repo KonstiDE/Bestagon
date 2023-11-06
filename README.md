@@ -62,7 +62,7 @@ Through the fast and easy visualization we can directly conclude that the bread 
 north-east we go, as fewer bakeries are available. We show of further potential of Bestagon with the bakery density
 in Germany by playing around with the settings it provides:
 
-|             Rectangle              |             Diamond              |             Hexagon              |             Triangle              |          Fishernet (beta)          |           Bubbles            |
+|             Rectangle              |             Diamond              |             Hexagon              |             Triangle              |              Fishernet             |           Bubbles            |
 |:----------------------------------:|:--------------------------------:|:--------------------------------:|:---------------------------------:|:----------------------------------:|:--------------------------------------:|
 | ![](readme/examples/rectangle.PNG) | ![](readme/examples/diamond.PNG) | ![](readme/examples/hexagon.PNG) | ![](readme/examples/triangle.PNG) | ![](readme/examples/fishernet.PNG) | ![](readme/examples/agglomeration.PNG) |
 
