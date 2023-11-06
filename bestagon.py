@@ -405,6 +405,9 @@ class Bestagon:
                 self.dlg.label_6.setEnabled(True)
                 self.dlg.label_7.setEnabled(True)
                 self.dlg.label_8.setEnabled(True)
+                self.dlg.render_slider.setEnabled(True)
+                self.dlg.checkBox_cut.setEnabled(False)
+                self.dlg.checkBox_soft.setEnabled(False)
             else:
                 self.dlg.lineEdit_width.setEnabled(True)
                 self.dlg.lineEdit_height.setEnabled(True)
@@ -412,13 +415,11 @@ class Bestagon:
                 self.dlg.label_6.setEnabled(False)
                 self.dlg.label_7.setEnabled(False)
                 self.dlg.label_8.setEnabled(False)
+                self.dlg.render_slider.setEnabled(False)
+                self.dlg.checkBox_cut.setEnabled(True)
+                self.dlg.checkBox_soft.setEnabled(True)
 
         self.dlg.comboBox_form.currentTextChanged.connect(form_combobox_changed)
-
-        if self.dlg.comboBox_form.currentText == "Bubbles / Heatmap":
-            self.dlg.render_slider.setEnabled(True)
-        else:
-            self.dlg.render_slider.setEnabled(False)
 
 
         self.dlg.show()
