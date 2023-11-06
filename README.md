@@ -7,11 +7,13 @@ The Bestagon plugin allows fast visualization for point intensities
 represented by different forms as rectangles or hexagons. More forms 
 are coming soon...
 
+:construction: **Bestagon is currently unavailable do to restucturing** :construction:
+
 :construction: It is recommended to use the same version as the plugin is developed with: **QGIS 3.34.0** :construction:
 
 ## Installation
-Search for `Bestagon` in the QGIS plugin installation manager and hit install. Alternatively download the [zip file](https://github.com/KonstiDE/Bestagon/archive/refs/heads/master.zip) of the master branch of the current repository and install it manually via the plugin installation
-manager of QGIS. Bestagon requires a minimum QGIS version of ``3.0``. You might __restart__ QGIS once after the installation.
+Download the [zip file](https://github.com/KonstiDE/Bestagon/archive/refs/heads/master.zip) of the master branch of the current repository and install it manually via the plugin installation
+manager of QGIS. Bestagon requires a minimum QGIS version of ``3.0``. You might __restart__ QGIS once after the installation. Alternatively, search for `Bestagon` in the QGIS plugin installation manager and hit install.
 
 ## Exemplary Usage
 To work, Bestagon requires a point layer to display any intensity information. Anyhow,
