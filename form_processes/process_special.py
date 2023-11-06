@@ -7,7 +7,7 @@ from qgis.core import *
 import processing
 
 
-def triangle(project_crs, point_crs, width, height, extent, feedback_process):
+def triangle(project_crs, point_crs, width, height, extent, feedback):
     pre_grid = processing.run("native:creategrid", {
         'TYPE': 0,
         'EXTENT': str.format(
@@ -23,12 +23,12 @@ def triangle(project_crs, point_crs, width, height, extent, feedback_process):
         'HOVERLAY': 0,
         'CRS': project_crs,
         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-    }, feedback=feedback_process)['OUTPUT']
+    }, feedback=feedback)['OUTPUT']
 
     return processing.run("qgis:delaunaytriangulation", {
         'INPUT': pre_grid,
         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-    }, feedback=feedback_process)['OUTPUT']
+    }, feedback=feedback)['OUTPUT']
 
 
 def fishers_net(project_crs, point_crs, width, height, extent, feedback_process):

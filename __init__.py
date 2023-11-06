@@ -32,5 +32,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
-    from .bestagon import bestagon
-    return bestagon(iface)
+    from .bestagon import Bestagon
+    return Bestagon(iface)

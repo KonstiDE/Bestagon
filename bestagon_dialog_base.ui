@@ -299,7 +299,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QSlider" name="horizontalSlider">
+          <widget class="QSlider" name="render_slider">
            <property name="enabled">
             <bool>false</bool>
            </property>

@@ -7,7 +7,7 @@ from qgis.core import *
 import processing
 
 
-def base_forms(project_crs, point_crs, width, height, extent, form_id, feedback_process):
+def base_forms(project_crs, point_crs, width, height, extent, form_id, feedback):
     """
     processing.run("native:creategrid",
     {
@@ -38,4 +38,4 @@ def base_forms(project_crs, point_crs, width, height, extent, form_id, feedback_
         'VOVERLAY': 0,
         'CRS': project_crs,
         'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-    }, feedback=feedback_process)['OUTPUT']
+    }, feedback=feedback)['OUTPUT']
