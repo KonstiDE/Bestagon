@@ -78,14 +78,19 @@ class Worker(QThread):
 
         self.feedback.setProgressText("Running processing algorithm...")
 
-        self.log.append("I am here!")
+        self.log.append("Loading suuuiiii!")
+        self.log.append("Greetings to Janik.")
         self.progress.emit(10)
 
         try:
             # Additionaly objects needed
             project_crs = QgsProject.instance().crs()
             point_crs = self.point_layer.crs()
-            extent = self.shape_layer.extent()
+
+            try:
+                extent = self.shape_layer.extent()
+            except Exception:
+                extent = self.point_layer.extent()
 
             # Main routine
             if self.point_layer is not None:
@@ -117,14 +122,23 @@ class Worker(QThread):
                                                       height=self.height, extent=extent, form_id=forms[self.form],
                                                       feedback=self.feedback)
 
-                                intensities = processing.run("native:countpointsinpolygon", {
-                                    'POLYGONS': grid,
-                                    'POINTS': self.point_layer,
-                                    'WEIGHT': '',
-                                    'CLASSFIELD': '',
-                                    'FIELD': 'NUMPOINTS',
-                                    'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
-                                }, feedback=self.feedback)['OUTPUT']
+                                if self.point_layer.geometryType() == QgsWkbTypes.PointGeometry:
+                                    intensities = processing.run("native:countpointsinpolygon", {
+                                        'POLYGONS': grid,
+                                        'POINTS': self.point_layer,
+                                        'WEIGHT': '',
+                                        'CLASSFIELD': '',
+                                        'FIELD': 'NUMPOINTS',
+                                        'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                                    }, feedback=self.feedback)['OUTPUT']
+                                else:
+                                    intensities = processing.run("native:sumlinelengths", {
+                                        'POLYGONS': grid,
+                                        'LINES': self.point_layer,
+                                        'LEN_FIELD': 'NUMPOINTS', # defaults to LENGTH
+                                        'COUNT_FIELD': 'COUNT',
+                                        'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
+                                    }, feedback=self.feedback)['OUTPUT']
 
                                 self.log.append("Successfully build intensity-grid.")
 
@@ -205,6 +219,12 @@ class Worker(QThread):
                                 "<p style=\"color:#FF0000\";>Please provide valid numbers in kilometer.</p><br>")
 
                     else:
+                        if self.point_layer.geometryType() == QgsWkbTypes.LineGeometry:
+                            self.log.insertHtml("<p style=\"color:#FF0000\";><b>Cannot compute heatmap for a line-type of layer</b></p><br>")
+                            self.log.insertHtml("<p style=\"color:#FF0000\";>Please use a point layer for this purpose</p><br>")
+
+                            raise Exception("Cannot compute Heatmap")
+
                         # No grid to create, only do heatmap styling so copy the layer to not alter the og one
                         self.point_layer.selectAll()
                         points_copy = processing.run("native:saveselectedfeatures", {
@@ -393,7 +413,8 @@ class Bestagon:
             self.dlg.comboBox_form.addItems(special_forms)
 
         # init filters
-        self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.dlg.mMapLayerComboBox_points.setFilters(QgsMapLayerProxyModel.PointLayer | QgsMapLayerProxyModel.LineLayer)
+
         self.dlg.mMapLayerComboBox_shape.setFilters(QgsMapLayerProxyModel.PolygonLayer)
 
         # disable functionalities
@@ -442,6 +463,8 @@ class Bestagon:
         ui_params["keep_form"] = self.dlg.checkBox_soft.isChecked()
         ui_params["color_ramp"] = self.dlg.comboBox_ramps
         ui_params["render_quality"] = self.dlg.render_slider.value()
+
+        self.dlg.tabWidget.setCurrentIndex(1)
 
         self.startWorker(
             log=log, params=ui_params, context=context
